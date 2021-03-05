@@ -1,0 +1,24 @@
+<!-- Showcasing the radial gradient and showing that it doesn't have to be aligned with the axis. -->
+<svg height="300" width="300">
+    <defs>
+      <radialGradient id="radialGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="5%" stop-color="hsl(360, 100%, 60%)" />
+        <stop offset="12.5%" stop-color="hsl(315, 100%, 60%)" />
+        <stop offset="25%" stop-color="hsl(270, 100%, 60%)" />
+        <stop offset="37.5%" stop-color="hsl(225, 100%, 60%)" />
+        <stop offset="50%" stop-color="hsl(180, 100%, 60%)" />
+        <stop offset="62.5%" stop-color="hsl(135, 100%, 60%)" />
+        <stop offset="75%" stop-color="hsl(90, 100%, 60%)" />
+        <stop offset="87.5%" stop-color="hsl(45, 100%, 60%)" />
+        <stop offset="95%" stop-color="hsl(0, 100%, 60%)" />
+    </radialGradient>
+    </defs>
+    <ellipse cx="100" cy="100" rx="80" ry="50" fill="url(#radialGradient)">
+        <animateTransform attributeName="transform"
+            type="rotate"
+            from="306 100 100"
+            to="0 100 100"
+            dur="30s"
+            repeatCount="indefinite"/>
+        </ellipse>
+</svg>

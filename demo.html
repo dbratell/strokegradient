@@ -1,0 +1,48 @@
+<script src="./strokegradient.js"></script>
+
+<svg height="1200" width="900" viewBox="0 0 200 150">
+    <path
+       id="infinity"
+       stroke-width="14"
+       stroke="url(#radialGradient)"
+       fill="none"
+       d="M 35.132291,10.198023 C 65.756479,7.9151558 74.508101,65.78287 105.13229,63.5 c 34.44041,-6.428255 27.1535,-50.257004 0,-53.301977 C 74.508101,7.9151558 65.756479,65.78287 35.132291,63.5 c -34.44040709,-6.428256 -27.1535,-50.257002 0,-53.301977 z"
+    />
+    <g id="stroked-path"></g>
+ </svg>
+
+ <script src="https://d3js.org/d3.v6.min.js"></script>
+ <script>
+     window.resolution = 40;
+     const originalPath = d3.select("g#stroked-path").node();
+     function showGradient() {
+        const tempDisplay = true;
+        const strokeWidth = tempDisplay ? 14 : 14;
+        const resolution = tempDisplay ? window.resolution : 1;
+        const useStroke = tempDisplay ? true : true; // false;  // Hides gaps
+        const colorFunction = tempDisplay && false ? () => "black" :
+            d3.scaleLinear()
+                .domain([0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1])
+                .range([
+                    d3.color("hsl(360, 100%, 60%)"),
+                    d3.color("hsl(315, 100%, 60%)"),
+                    d3.color("hsl(270, 100%, 60%)"),
+                    d3.color("hsl(225, 100%, 60%)"),
+                    d3.color("hsl(180, 100%, 60%)"),
+                    d3.color("hsl(135, 100%, 60%)"),
+                    d3.color("hsl(90, 100%, 60%)"),
+                    d3.color("hsl(45, 100%, 60%)"),
+                    d3.color("hsl(0, 100%, 60%)")
+                    ]);
+        makePathGradient(d3.select(originalPath), d3.select("svg path#infinity"),
+                        colorFunction, 
+                        resolution, strokeWidth, useStroke, tempDisplay && false)
+        window.resolution *= 0.9;
+        if (window.resolution < 0.3) {
+            window.clearInterval(window.animationTimer);
+        }
+        
+     }
+
+     window.animationTimer = window.setInterval(showGradient, 400);
+ </script>
