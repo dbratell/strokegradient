@@ -1,0 +1,4 @@
+# Cache the js file for a day
+<FilesMatch "strokegradient\..*\.js">
+    Header set Cache-Control "max-age=86400, public"
+</FilesMatch>

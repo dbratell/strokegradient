@@ -1,0 +1,27 @@
+<script src="https://d3js.org/d3.v6.min.js"></script>
+<script src="https://sarasas.se/strokegradient/strokegradient.min.js"></script>
+<svg height="1200" width="900" viewBox="0 0 200 150">
+    <path
+       id="infinity"
+       stroke-width="14"
+       fill="none"
+       d="M 35.1323,10.1980 C 65.7565,7.9152 74.5081,65.7829 105.1323,63.5
+          c 34.4404,-6.4283 27.1535,-50.2570 0,-53.3020 
+          C 74.5081,7.9152 65.7565,65.7829 35.1323,63.5 
+          c -34.4404,-6.4282 -27.1535,-50.257 0,-53.302 z"
+    />
+    <g id="stroked-path"></g>
+ </svg>
+ <script>
+    const originalPath = document.getElementById("infinity");
+    const polygonLocation = document.getElementById("stroked-path");
+    const strokeWidth = 14;  // 14 units wide coloured polygons
+    const resolution = 1; // 1 unit long coloured polygons.
+    const useStroke = true; // Hides gaps.
+    const gradientSteps = [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1];
+    const gradientColors = gradientSteps.map(s => d3.hsl(s * 360, 1, 0.6));
+    const colorFunction = d3.scaleLinear().domain(gradientSteps).range(gradientColors);
+    makePathGradient(originalPath, polygonLocation,
+                    colorFunction, 
+                    resolution, strokeWidth, useStroke)
+</script>

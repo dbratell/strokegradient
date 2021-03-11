@@ -1,40 +1,58 @@
-"use strict"
+"use strict";
 /**
  * Code to create a gradient along a stroked path.
  * 
+ * Can be minified with https://javascript-minifier.com
+ *
  * Inspired by the shortcomings of https://bl.ocks.org/mbostock/4163057
  * @author Daniel Bratell
  */
 
 /**
  * Main API function to create a nice gradient along a path.
- * 
- * @param {*} parentSelection Place in the DOM tree to put the generated path segments.
- * @param {*} pathSelection The path that is the template for the gradient stroke.
+ *
+ * Usage:
+ *    makePathGradient(originalPath, parentSelection, color, resolution, width, useStroke)
+ * @param {*} originalPath The path that is the template for the gradient stroke. D3 selection.
+ * @param {*} polygonLocation Place in the DOM tree to put the generated path segments. D3 selection
  * @param {*} color color function taking a number 0 to 1 and returning a color.
  * @param {*} resolution Length in pixels of path segments. This is in viewBox units.
  * @param {*} width Width of the polygons making up the path gradient. This is in viewBox units.
  * @param {*} useStroke If there should be a stroke around path segments to hide segment gaps.
  */
-function makePathGradient(parentSelection, pathSelection, color, resolution, width, useStroke, tempDisplay) {
-    //const path = pathSelection.remove();
-    const path = pathSelection;
-    // Hide the original path since we are going to replace it with lots of small polygons.
-    path.style("display", "none"); 
+const makePathGradient = (function () {
 
-    const pathSamples = createPathSamples(path.node(), resolution);
+/**
+ * Main API function to create a nice gradient along a path.
+ *
+ * @param {*} originalPath The path that is the template for the gradient stroke.
+ * @param {*} polygonLocation Place in the DOM tree to put the generated path segments.
+ * @param {*} color color function taking a number 0 to 1 and returning a color.
+ * @param {*} resolution Length in pixels of path segments. This is in viewBox units.
+ * @param {*} width Width of the polygons making up the path gradient. This is in viewBox units.
+ * @param {*} useStroke If there should be a stroke around path segments to hide segment gaps.
+ */
+ function makePathGradientImpl(originalPath, polygonLocation, color, resolution, width, useStroke, tempDisplay) {
+    if (window.d3 === undefined) {
+        throw "Requires d3.js to be loaded";
+    }
+    const path = d3.select(originalPath);
+    const parentSelection = d3.select(polygonLocation);
+    // Hide the original path since we are going to replace it with lots of small polygons.
+    path.style("display", "none");
+
+    const pathSamples = createPathSamples(originalPath, resolution);
     const epsilon = resolution / 1000;
     const isPathClosed = vectorLen(vectorDiff(pathSamples[0], pathSamples[pathSamples.length - 1])) < epsilon;
     const polygons = parentSelection.selectAll("path")
         .data(makePathSegmentDefinitions(pathSamples, isPathClosed))
         .join("path")
         .style("fill", tempDisplay ? "none" : function(d) { return color(d.t); })
-        .attr("comment", d => "" + d)
         .attr("d", function(d) { return toLineSegmentPolygon(d[0], d[1], d[2], d[3], width); });
     if (useStroke) {
         // A very thin line to hide gaps between polygons. Thinnest possible line would be
         // 1 pixel, which you get with (1 / window.devicePixelRatio) +  "px" and
-       
+
         polygons
             .style("stroke", useStroke ? function(d) { return color(d.t); } : "none")
             .style("stroke-width", (1 / window.devicePixelRatio) +  "px")
@@ -43,8 +61,8 @@ function makePathGradient(parentSelection, pathSelection, color, resolution, wid
 }
 
 /**
- * Creates groups of 4 points so that each path segments has its points 
- * on position 1 and 2, and position 0 and 3 has preceding and successor points, if any. 
+ * Creates groups of 4 points so that each path segments has its points
+ * on position 1 and 2, and position 0 and 3 has preceding and successor points, if any.
  * Otherwise undefined. Each group has a t property (0-1) that is the average of the t of
  * the line points (p1 and p2).
  * @param points Sequence of points on a path.
@@ -56,8 +74,8 @@ function makePathSegmentDefinitions(points, isPathClosed) {
     const afterPathPoint = isPathClosed ? points[1] : undefined;
     const pathSegmentDefinitions = d3.range(numberOfPathSegments).map(function (i) {
         const pathSegmentDefinition = [
-            i > 0 ? points[i - 1] : beforePathPoint, 
-            points[i], 
+            i > 0 ? points[i - 1] : beforePathPoint,
+            points[i],
             points[i + 1],
             i + 2 < points.length ? points[i + 2] : afterPathPoint];
         pathSegmentDefinition.t = (points[i].t + points[i + 1].t) / 2;
@@ -99,7 +117,7 @@ function createPathSamples(path, precision) {
  * @param r radius, as in padding on one side of the line p0-p1-p2.
  * @returns A vector of three (pointed lineJoin) or five (beveled lineJoin) points.
  */
-function lineJoinWithMiterLimit(p0, p1, p2, r) {
+function createLineJoinEdgePoints(p0, p1, p2, r) {
     const u01 = getOrthogonalUnitVector(p0, p1);
     const u12 = getOrthogonalUnitVector(p1, p2);
 
@@ -135,11 +153,11 @@ function lineJoinWithMiterLimit(p0, p1, p2, r) {
             const cuttingDirection = getOrthogonalUnitVector(p1, cuttingPoint); // or rotate u012 90 degrees
             const p1PaddedLeftMeetingPoint = getLineIntersectionPoint(p0Padded, p1PaddedLeft,
                                                        cuttingPoint,
-                                                        [cuttingPoint[0] + cuttingDirection[0], 
+                                                        [cuttingPoint[0] + cuttingDirection[0],
                                                          cuttingPoint[1] + cuttingDirection[1]]);
             const p1PaddedRightMeetingPoint = getLineIntersectionPoint(p2Padded, p1PaddedRight,
                                                             cuttingPoint,
-                                                             [cuttingPoint[0] + cuttingDirection[0], 
+                                                             [cuttingPoint[0] + cuttingDirection[0],
                                                               cuttingPoint[1] + cuttingDirection[1]]);
             return [p0Padded, p1PaddedLeftMeetingPoint, cuttingPoint, p1PaddedRightMeetingPoint, p2Padded];
         } else {
@@ -159,7 +177,7 @@ function toLineSegmentPolygon(p0, p1, p2, p3, width) {
     const resultPoints = [];
 
     if (p0) {
-        const upperLeft = lineJoinWithMiterLimit(p0, p1, p2, r);
+        const upperLeft = createLineJoinEdgePoints(p0, p1, p2, r);
         if (upperLeft.length == 3) {
             resultPoints.push(upperLeft[1]);
         } else { // Beveled: 5 points
@@ -171,14 +189,14 @@ function toLineSegmentPolygon(p0, p1, p2, p3, width) {
         resultPoints.push(p1PaddedUpper);
     }
     if (p3) {
-        const upperRight = lineJoinWithMiterLimit(p1, p2, p3, r);
+        const upperRight = createLineJoinEdgePoints(p1, p2, p3, r);
         if (upperRight.length == 3) {
             resultPoints.push(upperRight[1]);
         } else { // Beveled: 5 points
             resultPoints.push(upperRight[1]);
             resultPoints.push(upperRight[2]);
         }
-        const lowerRight = lineJoinWithMiterLimit(p3, p2, p1, r);
+        const lowerRight = createLineJoinEdgePoints(p3, p2, p1, r);
         if (lowerRight.length == 3) {
             resultPoints.push(lowerRight[1]);
         } else { // Beveled: 5 points
@@ -193,10 +211,10 @@ function toLineSegmentPolygon(p0, p1, p2, p3, width) {
     }
 
     if (p0) {
-        const lowerLeft = lineJoinWithMiterLimit(p2, p1, p0, r);
+        const lowerLeft = createLineJoinEdgePoints(p2, p1, p0, r);
         if (lowerLeft.length == 3) {
             resultPoints.push(lowerLeft[1]);
-        } else { 
+        } else {
             // Beveled: 5 points - [p2, p21CutMiter, p1midPointCut, p10CutMiter, p0]
             resultPoints.push(lowerLeft[1]);
             resultPoints.push(lowerLeft[2]);
@@ -220,12 +238,12 @@ function toLineSegmentPolygon(p0, p1, p2, p3, width) {
 }
 
 /** Computes the length of vector v. */
-function vectorLen(v) { 
+function vectorLen(v) {
     return Math.sqrt(v[0] * v[0] + v[1] * v[1]);
 }
 
 /** Returns a vector from a to b. */
-function vectorDiff(a, b) { 
+function vectorDiff(a, b) {
     return [b[0] - a[0], b[1] - a[1]];
 }
 
@@ -256,3 +274,8 @@ function getOrthogonalUnitVector(p0, p1) {
   const orthogonalVector = [p0[1] - p1[1], p1[0] - p0[0]];
   return toUnitVector(orthogonalVector);
 }
+
+return makePathGradientImpl;
+
+} // end namespace function
+ )();

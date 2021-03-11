@@ -1,0 +1,35 @@
+<style>
+    code { white-space: pre;
+    }
+</style>
+<code>
+
+&lt;script src="https://d3js.org/d3.v6.min.js"&gt;&lt;/script&gt;
+&lt;script src="./strokegradient.js"&gt;&lt;/script&gt;
+&lt;svg height="1200" width="900" viewBox="0 0 200 150"&gt;
+    &lt;path
+       id="infinity"
+       stroke-width="14"
+       stroke="url(#radialGradient)"
+       fill="none"
+       d="M 35.132291,10.198023 C 65.756479,7.9151558 74.508101,65.78287 105.13229,63.5 c 34.44041,-6.428255 27.1535,-50.257004 0,-53.301977 C 74.508101,7.9151558 65.756479,65.78287 35.132291,63.5 c -34.44040709,-6.428256 -27.1535,-50.257002 0,-53.301977 z"
+    /&gt;
+    &lt;g id="stroked-path"&gt;&lt;/g&gt;
+ &lt;/svg&gt;
+ &lt;script&gt;
+    function showGradient() {
+        const originalPath = d3.select("g#stroked-path").node();
+        const strokeWidth = 14;  // 14 units wide coloured polygons
+        const resolution = 3; // 1 unit long coloured polygons.
+        const useStroke = true; // Hides gaps.
+        const gradientSteps = [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1];
+        const gradientColors = gradientSteps.map(s =&gt; d3.hsl(s * 360, 1, 0.6));
+        const colorFunction = d3.scaleLinear()
+                .domain(gradientSteps)
+                .range(gradientColors);
+       makePathGradient(d3.select(originalPath), d3.select("svg path#infinity"),
+                       colorFunction, 
+                       resolution, strokeWidth, useStroke)
+    }
+&lt;/script&gt;
+</code>
