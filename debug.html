@@ -1,0 +1,98 @@
+<script src="https://d3js.org/d3.v6.js"></script>
+<script src="./strokegradient.js"></script>
+
+<body>
+
+<svg width="100%" viewBox="0 0 200 150">
+    <path
+       id="infinity"
+       stroke-width="14"
+       stroke="url(#radialGradient)"
+       fill="none"
+       d="M 35.132291,10.198023 C 65.756479,7.9151558 74.508101,65.78287 105.13229,63.5 c 34.44041,-6.428255 27.1535,-50.257004 0,-53.301977 C 74.508101,7.9151558 65.756479,65.78287 35.132291,63.5 c -34.44040709,-6.428256 -27.1535,-50.257002 0,-53.301977 z"
+    />
+    <g id="point-markers"></g>
+    <g id="stroked-path"></g>
+    <g id="boxes"></g>
+ </svg>
+
+ <script>
+    window.pointIndex = 0;
+    function setPoint(buttonElement) {
+        window.pointIndex = parseInt(buttonElement.innerText);
+    }
+    window.points = [[30, 75], [70, 75], [110, 75], [150, 75]];
+    function drawEverything() {
+        // Draw line
+        d3.select("path#infinity").datum(window.points)
+            .attr("d", d3.line()
+//                .curve(d3.curveLinearClosed)
+                )
+            .attr("stroke", "black")
+            .attr("fill", "none")
+            .attr("stroke-width", 0.3);
+        // Draw points
+        d3.select("g#point-markers").selectAll("circle").data(window.points)
+            .join("circle")
+            .attr("cx", d=>d[0])
+            .attr("cy", d=>d[1])
+            .attr("r", 1.3)
+            .attr("stroke", "none")
+            .attr("fill", "black");
+        d3.select("g#boxes").selectAll("path").data(
+            [
+                window.points,
+                [undefined, window.points[0], window.points[1], window.points[2]],
+                [window.points[1], window.points[2], window.points[3], undefined],
+            ]
+            )
+            .join("path")
+            .attr("d", d=>toLineSegmentPolygon(d[0], d[1], d[2], d[3], 30))
+            .attr("stroke-width", 0.1)
+            .attr("stroke", (d, i) => i == 0 ? "red" : i == 1 ? "blue" : "green")
+            .attr("fill", "none");
+    }
+    function movePoint(event) {
+        const coordinates = d3.pointer(event, d3.select("svg"));
+        // console.log(coordinates);
+        const svg = d3.select("svg").node();
+        const svgPoint = svg.createSVGPoint();
+        svgPoint.x = coordinates[0];
+        svgPoint.y = coordinates[1];
+        // console.log(svgPoint);
+        // To SVG coordinates
+        const svgPoint2 = svgPoint.matrixTransform(svg.getScreenCTM().inverse());    
+        // console.log(svgPoint2);
+        window.points[window.pointIndex] = [svgPoint2.x, svgPoint2.y];
+        drawEverything();
+
+    }
+
+// transform to SVG coordinates
+    d3.select("svg").on("mousedown", movePoint);
+    drawEverything();
+
+</script>
+<button onclick="setPoint(this)">0</button>
+<button onclick="setPoint(this)">1</button>
+<button onclick="setPoint(this)">2</button>
+<button onclick="setPoint(this)">3</button>
+</body>
+<script>
+     function showGradient() {
+        const originalPath = document.getElementById("infinity");
+        const polygonLocation = document.getElementById("stroked-path");
+        const strokeWidth = 14;
+        const resolution = 1;
+        const useStroke = true; // Hides gaps
+        const gradientSteps = [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1];
+        const gradientColors = gradientSteps.map(s => d3.hsl(s * 360, 1, 0.6));
+        const colorFunction = d3.scaleLinear()
+                .domain(gradientSteps)
+                .range(gradientColors);
+        makePathGradient(originalPath, polygonLocation,
+                        colorFunction, 
+                        resolution, strokeWidth, useStroke)
+     }
+     showGradient();
+ </script>
