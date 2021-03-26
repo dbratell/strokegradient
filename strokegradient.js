@@ -159,23 +159,23 @@ function createLineJoinEdgePoints(p0, p1, p2, r) {
             // This is the outer corner, where we want to apply a miter limit.
             const miterSize = vectorLen(miterVector);
             if (miterSize > miterLimit) {
-            // Bevel the edge by cutting off the miter.
-            const u012 = toUnitVector(miterVector);
+                // Bevel the edge by cutting off the miter.
+                const u012 = toUnitVector(miterVector);
                 const cuttingPoint = addMultipleVector(p1, miterLimit, u012);
-            const cuttingDirection = getOrthogonalUnitVector(p1, cuttingPoint); // or rotate u012 90 degrees
-            const p1PaddedLeftMeetingPoint = getLineIntersectionPoint(p0Padded, p1PaddedLeft,
-                                                       cuttingPoint,
+                const cuttingDirection = getOrthogonalUnitVector(p1, cuttingPoint); // or rotate u012 90 degrees
+                const p1PaddedLeftMeetingPoint = getLineIntersectionPoint(p0Padded, p1PaddedLeft,
+                                                           cuttingPoint,
                                                            addMultipleVector(cuttingPoint, 1, cuttingDirection));
-            const p1PaddedRightMeetingPoint = getLineIntersectionPoint(p2Padded, p1PaddedRight,
-                                                            cuttingPoint,
+                const p1PaddedRightMeetingPoint = getLineIntersectionPoint(p2Padded, p1PaddedRight,
+                                                                cuttingPoint,
                                                                 addMultipleVector(cuttingPoint, 1, cuttingDirection));
                 pushPointToResult(p1PaddedLeftMeetingPoint);
                 pushPointToResult(cuttingPoint);
                 pushPointToResult(p1PaddedRightMeetingPoint);
-        } else {
+            } else {
                 pushPointToResult(intersectionPoint);
-        }
-    } else {
+            }
+        } else {
             // This is the inner corner, and here we need to make sure that we don't extend the intersection past the other side of the line.
             let applyInnerCornerTrim = false;
             if (distanceAlongP01PaddedInPercent < 0) { 
@@ -206,56 +206,59 @@ function toLineSegmentPolygon(p0, p1, p2, p3, width) {
 
     const resultPoints = [];
 
+    function pushPointToResult(point) {
+        resultPoints.push(point);
+    }
     if (p0) {
         const upperLeft = createLineJoinEdgePoints(p0, p1, p2, r);
         // Pick the points that correspond to the p1-p2 part of the line join, this is the second half of the array, excluding the end points.
         if (upperLeft.length == 3) {
-            resultPoints.push(upperLeft[1]);
+            pushPointToResult(upperLeft[1]);
         } else { // Beveled: 5 points
-            resultPoints.push(upperLeft[2]);
-            resultPoints.push(upperLeft[3]);
+            pushPointToResult(upperLeft[2]);
+            pushPointToResult(upperLeft[3]);
         }
     } else {
         const p1PaddedUpper = addMultipleVector(p1, r, u12);
-        resultPoints.push(p1PaddedUpper);
+        pushPointToResult(p1PaddedUpper);
     }
     if (p3) {
         // Pick the points that correspond to the p1-p2 part of the line join, this is the first half of the array, excluding the end points.
         const upperRight = createLineJoinEdgePoints(p1, p2, p3, r);
         if (upperRight.length == 3) {
-            resultPoints.push(upperRight[1]);
+            pushPointToResult(upperRight[1]);
         } else { // Beveled: 5 points
-            resultPoints.push(upperRight[1]);
-            resultPoints.push(upperRight[2]);
+            pushPointToResult(upperRight[1]);
+            pushPointToResult(upperRight[2]);
         }
         // Pick the points that correspond to the p2-p1 part of the line join, this is the second half of the array, excluding the end points.
         const lowerRight = createLineJoinEdgePoints(p3, p2, p1, r);
         if (lowerRight.length == 3) {
-            resultPoints.push(lowerRight[1]);
+            pushPointToResult(lowerRight[1]);
         } else { // Beveled: 5 points
-            resultPoints.push(lowerRight[2]);
-            resultPoints.push(lowerRight[3]);
+            pushPointToResult(lowerRight[2]);
+            pushPointToResult(lowerRight[3]);
         }
     } else {
         const p2PaddedUpper = addMultipleVector(p2, r, u12);
         const p2PaddedLower = addMultipleVector(p2, -r, u12);
-        resultPoints.push(p2PaddedUpper);
-        resultPoints.push(p2PaddedLower);
+        pushPointToResult(p2PaddedUpper);
+        pushPointToResult(p2PaddedLower);
     }
 
     if (p0) {
         // Pick the points that correspond to the p2-p1 part of the line join, this is the first half of the array, excluding the end points.
         const lowerLeft = createLineJoinEdgePoints(p2, p1, p0, r);
         if (lowerLeft.length == 3) {
-            resultPoints.push(lowerLeft[1]);
+            pushPointToResult(lowerLeft[1]);
         } else {
             // Beveled: 5 points - [p2, p21CutMiter, p1midPointCut, p10CutMiter, p0]
-            resultPoints.push(lowerLeft[1]);
-            resultPoints.push(lowerLeft[2]);
+            pushPointToResult(lowerLeft[1]);
+            pushPointToResult(lowerLeft[2]);
         }
     } else {
         const p1PaddedLower = addMultipleVector(p1, -r, u12);
-        resultPoints.push(p1PaddedLower);
+        pushPointToResult(p1PaddedLower);
     }
 
     let resultSvgPathString = undefined;
@@ -318,4 +321,4 @@ function getOrthogonalUnitVector(p0, p1) {
 return makePathGradientImpl;
 
 } // end namespace function
- )();
+)();

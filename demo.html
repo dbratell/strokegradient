@@ -1,4 +1,5 @@
-<script src="./strokegradient.js"></script>
+<script src="https://d3js.org/d3.v6.min.js"></script>
+<script src="https://sarasas.se/strokegradient/strokegradient.min.js"></script>
 
 <svg height="1200" width="900" viewBox="0 0 200 150">
     <path
@@ -11,38 +12,21 @@
     <g id="stroked-path"></g>
  </svg>
 
- <script src="https://d3js.org/d3.v6.min.js"></script>
  <script>
-     window.resolution = 40;
-     const originalPath = d3.select("g#stroked-path").node();
      function showGradient() {
-        const tempDisplay = true;
-        const strokeWidth = tempDisplay ? 14 : 14;
-        const resolution = tempDisplay ? window.resolution : 1;
-        const useStroke = tempDisplay ? true : true; // false;  // Hides gaps
-        const colorFunction = tempDisplay && false ? () => "black" :
-            d3.scaleLinear()
-                .domain([0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1])
-                .range([
-                    d3.color("hsl(360, 100%, 60%)"),
-                    d3.color("hsl(315, 100%, 60%)"),
-                    d3.color("hsl(270, 100%, 60%)"),
-                    d3.color("hsl(225, 100%, 60%)"),
-                    d3.color("hsl(180, 100%, 60%)"),
-                    d3.color("hsl(135, 100%, 60%)"),
-                    d3.color("hsl(90, 100%, 60%)"),
-                    d3.color("hsl(45, 100%, 60%)"),
-                    d3.color("hsl(0, 100%, 60%)")
-                    ]);
-        makePathGradient(d3.select(originalPath), d3.select("svg path#infinity"),
+        const originalPath = document.getElementById("infinity");
+        const polygonLocation = document.getElementById("stroked-path");
+        const strokeWidth = 14;
+        const resolution = 1;
+        const useStroke = true; // Hides gaps
+        const gradientSteps = [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1];
+        const gradientColors = gradientSteps.map(s => d3.hsl(s * 360, 1, 0.6));
+        const colorFunction = d3.scaleLinear()
+                .domain(gradientSteps)
+                .range(gradientColors);
+        makePathGradient(originalPath, polygonLocation,
                         colorFunction, 
-                        resolution, strokeWidth, useStroke, tempDisplay && false)
-        window.resolution *= 0.9;
-        if (window.resolution < 0.3) {
-            window.clearInterval(window.animationTimer);
-        }
-        
+                        resolution, strokeWidth, useStroke)
      }
-
-     window.animationTimer = window.setInterval(showGradient, 400);
+     showGradient();
  </script>
